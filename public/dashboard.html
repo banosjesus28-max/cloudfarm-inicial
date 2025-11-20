@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudFarm | Bienvenido</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Iconos -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Estilos -->>
+  <link rel="stylesheet" href="/style/dashboard.css">
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid">
+      <button id="toggle-btn" class="me-3"><i class="bi bi-list"></i></button>
+      <a class="navbar-brand" href="#"><i class="bi bi-activity me-2"></i> CloudFarm Intelligens</a>
+      <div class="ms-auto text-light" id="clock"></div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <nav class="nav flex-column mt-3">
+      <a href="/" class="nav-link"><i class="fas fa-home me-2"></i> Inicio</a>
+      <a href="/analisis" class="nav-link"><i class="fa-solid fa-chart-line"></i>&ensp; Analisis</a>
+      <a href="#grafTemp" class="nav-link"><i class="bi bi-thermometer-half me-2"></i> Temperatura</a>
+      <a href="#grafPulso" class="nav-link"><i class="bi bi-heart-pulse me-2"></i> Pulso</a>
+      <a href="#grafSpO2" class="nav-link"><i class="bi bi-droplet-half me-2"></i> SpO2</a>
+      <a href="#grafSpeed" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Velocidad</a>
+      <a href="#map" class="nav-link"><i class="bi bi-geo-alt me-2"></i> GPS</a>
+      <a href="/login" class="nav-link"><i class="fas fa-arrow-right-from-bracket"></i> Cerrar sesion</a>
+    </nav>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div id="content">
+    <div class="container-fluid">
+      <h2 class="text-center mb-4 fw-bold">Monitoreo en Tiempo Real</h2>
+
+      <!-- Métricas -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-2 col-sm-6">
+          <div class="metric-card">
+            <div class="metric-icon text-danger"><i class="bi bi-thermometer-half"></i></div>
+            <div class="metric-value" id="valTemp">-- °C</div>
+            <div class="metric-label">Temperatura</div>
+          </div>
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+          <div class="metric-card">
+            <div class="metric-icon text-primary"><i class="bi bi-heart-pulse"></i></div>
+            <div class="metric-value" id="valPulso">-- BPM</div>
+            <div class="metric-label">Pulso</div>
+          </div>
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+          <div class="metric-card">
+            <div class="metric-icon text-info"><i class="bi bi-droplet-half"></i></div>
+            <div class="metric-value" id="valSpO2">-- %</div>
+            <div class="metric-label">SpO2</div>
+          </div>
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+          <div class="metric-card">
+            <div class="metric-icon text-warning"><i class="bi bi-speedometer2"></i></div>
+            <div class="metric-value" id="valSpeed">-- m/s</div>
+            <div class="metric-label">Velocidad</div>
+          </div>
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+          <div class="metric-card">
+            <div class="metric-icon text-success"><i class="fa-solid fa-signal"></i></div>
+            <div class="metric-value" id="valSats">--</div>
+            <div class="metric-label">Satélites</div>
+          </div>
+        </div>
+
+        <div class="col-md-2 col-sm-6">
+          <div class="metric-card">
+            <div class="metric-icon text-secondary"><i class="bi bi-geo-alt"></i></div>
+            <div class="metric-value" id="valAlt">-- m</div>
+            <div class="metric-label">Altitud</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+      <div class="row g-4">
+        <div class="col-lg-6 col-md-12">
+          <div id="grafTemp" class="card p-3">
+            <h5 class="card-title text-danger"><i class="bi bi-thermometer-half me-2"></i>Temperatura (°C)</h5>
+            <canvas id="tempChart"></canvas>
+          </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12">
+          <div id="grafPulso" class="card p-3">
+            <h5 class="card-title text-primary"><i class="bi bi-heart-pulse me-2"></i>Pulso (BPM)</h5>
+            <canvas id="pulsoChart"></canvas>
+          </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12">
+          <div id="grafSpO2" class="card p-3">
+            <h5 class="card-title text-info"><i class="bi bi-droplet-half me-2"></i>SpO2 (%)</h5>
+            <canvas id="spo2Chart"></canvas>
+          </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12">
+          <div id="grafSpeed" class="card p-3">
+            <h5 class="card-title text-warning"><i class="bi bi-speedometer2 me-2"></i>Velocidad (m/s)</h5>
+            <canvas id="speedChart"></canvas>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="card p-3">
+            <h5 class="card-title text-success"><i class="bi bi-geo-alt me-2"></i>Ubicación GPS</h5>
+            <div id="map"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>© 2025 Sistema de Monitoreo | Cloudfarm Intelligens</footer>
+  </div>
+
+  <script src="/js/slidebar.js"></script>
+  <script src="/js/tiempo.real.js"></script>
+</body>
+</html>

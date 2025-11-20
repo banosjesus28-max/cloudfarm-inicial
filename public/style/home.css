@@ -1,0 +1,149 @@
+:root {
+    --primary: #1b5e20;
+    --secondary: #66bb6a;
+    --gradient: linear-gradient(135deg, #1b5e20, #66bb6a);
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+}
+
+/* NAVBAR */
+.navbar {
+    background: var(--gradient);
+}
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.nav-link {
+    color: #fff !important;
+    font-weight: 500;
+    transition: 0.3s;
+}
+.nav-link:hover {
+    color: #c8e6c9 !important;
+}
+
+/* HERO */
+.hero {
+    background: url('https://imgs.search.brave.com/zu1r8ZNPTSCA3flLivyhHPBissL7CNzvVw92k_FKLBc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93YWxs/cGFwZXJzLmNvbS9p/bWFnZXMvaGQvYmxh/Y2stYW5kLXdoaXRl/LWNhdHRsZS1icmVl/ZHMtYXQtZ3Jhc3Mt/ZmllbGQtaXJ6NjBs/eDhwbzZvMXFwdC5q/cGc') center/cover no-repeat;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    color: white;
+}
+.hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+}
+.hero-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    width: 100%;
+    padding: 0 15px;
+}
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+}
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+.btn-main {
+    background: var(--secondary);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 30px;
+    transition: all 0.3s;
+}
+.btn-main:hover {
+    background: #81c784;
+    transform: translateY(-2px);
+}
+
+/* FEATURES */
+#funciones {
+    background: #f8f9fa;
+    padding: 80px 0;
+}
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 40px 20px;
+    transition: all 0.3s;
+}
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.feature-card i {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 15px;
+}
+
+/* ABOUT */
+#nosotros {
+    padding: 80px 0;
+}
+#nosotros img {
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* CONTACT */
+#contacto {
+    background: var(--gradient);
+    color: white;
+    padding: 80px 0;
+}
+#contacto .form-control {
+    border-radius: 10px;
+    border: none;
+    padding: 12px;
+}
+#contacto button {
+    background: #fff;
+    color: var(--primary);
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+#contacto button:hover {
+    background: #c8e6c9;
+}
+
+/* FOOTER */
+footer {
+    background: #0d260f;
+    color: #c8e6c9;
+    padding: 30px 0;
+}
+footer a {
+    color: #81c784;
+    margin: 0 10px;
+    transition: 0.3s;
+}
+footer a:hover {
+    color: white;
+}
+
+/* ANIMATIONS */
+[data-aos] {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-in-out;
+}
+[data-aos].aos-animate {
+    opacity: 1;
+    transform: translateY(0);
+}
