@@ -16,37 +16,6 @@ const max = arr => Math.max(...arr);
 
 function formatearFecha(f) { return new Date(f).toLocaleString(); }
 
-/* =======================================================
-     ALERTAS
-======================================================= */
-function detectarAlertas(data) {
-  const alertas = [];
-
-  data.forEach((d, i) => {
-    const n = i + 1;
-    if (d.bpm > 120) alertas.push(`Registro ${n}: BPM muy alto (${d.bpm}).`);
-    if (d.bpm < 50) alertas.push(`Registro ${n}: BPM muy bajo (${d.bpm}).`);
-    if (d.spo2 < 92) alertas.push(`Registro ${n}: SpO₂ bajo (${d.spo2}).`);
-    if (d.temp > 37.8) alertas.push(`Registro ${n}: Temperatura alta (${d.temp} °C).`);
-    if (d.temp < 35) alertas.push(`Registro ${n}: Temperatura muy baja (${d.temp} °C).`);
-    if (d.sats < 4) alertas.push(`Registro ${n}: Señal GPS baja (${d.sats}).`);
-  });
-
-  return alertas;
-}
-
-function mostrarAlertas(alertas) {
-  const alertDiv = document.getElementById("alerts");
-  const list = document.getElementById("alerts-list");
-
-  if (alertas.length === 0) {
-    alertDiv.style.display = "none";
-    return;
-  }
-
-  alertDiv.style.display = "block";
-  list.innerHTML = alertas.map(a => `<li>${a}</li>`).join("");
-}
 
 /* =======================================================
      PANEL DE ESTADÍSTICAS
@@ -136,77 +105,6 @@ async function main() {
   // Helper para colorear puntos con alerta
   const colorAlertas = (arr, low, high) =>
     arr.map(v => (v < low || v > high ? "red" : "blue"));
-
-  /* ==============================
-        GRÁFICAS
-  ============================== */
- new Chart(chartBpm, {
-    type: 'line', // Línea para BPM
-    data: { labels, datasets: [{
-      label: 'BPM',
-      data: bpm,
-      borderColor: 'red',
-      pointBackgroundColor: colorAlertas(bpm, 50, 120),
-      tension: 0.3
-    }]},
-    plugins: [lineaPromedio(prom(bpm))]
-});
-
-new Chart(chartSpo2, {
-    type: 'pie', // Cambiado a pastel
-    data: { labels, datasets: [{
-      label: 'SpO₂',
-      data: spo2,
-      backgroundColor: colorAlertas(spo2, 92, 200), // colores por porción
-      borderColor: 'white',
-      borderWidth: 1
-    }]}
-});
-
-new Chart(chartTemp, {
-    type: 'bar', // Cambiado a barras
-    data: { labels, datasets: [{
-      label: 'Temperatura (°C)',
-      data: temp,
-      backgroundColor: colorAlertas(temp, 35, 37.8)
-    }]}
-});
-
-new Chart(chartSpeed, {
-    type: 'line', // Mantiene línea
-    data: { labels, datasets: [{
-      label: 'Velocidad (m/s)',
-      data: speed,
-      borderColor: 'green',
-      tension: 0.3
-    }]},
-    plugins: [lineaPromedio(prom(speed))]
-});
-
-new Chart(chartSats, {
-    type: 'bar', // Mantiene barras
-    data: { labels, datasets: [{
-      label: 'Satélites',
-      data: sats,
-      backgroundColor: sats.map(s => s < 4 ? "red" : "purple")
-    }]}
-});
-
-new Chart(chartCoords, {
-    type: 'scatter', // Mantiene scatter
-    data: { datasets: [{
-      label: 'Coordenadas GPS',
-      data: coords,
-      pointRadius: 5,
-      backgroundColor: 'brown'
-    }]},
-    options: {
-      scales: {
-        x: { title: { display: true, text: "Longitud" }},
-        y: { title: { display: true, text: "Latitud" }}
-      }
-    }
-});
 
 }
 

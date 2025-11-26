@@ -40,7 +40,6 @@ app.get("/analisis", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "analisis.html"));
 });
 
-
 // APIS
 
 // api para obtener usuarios
@@ -64,61 +63,6 @@ app.get('/api/sensores', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener los sensores' });
   }
 });
-
-// api para calculo
-
-app.get('/api/calculo', async (req, res) => {
-  try {
-    // Columnas válidas
-    const columnasValidas = ['bpm', 'spo2', 'temp', 'speed', 'alt', 'sats'];
-
-    // Traer datos de la BD
-    const [rows] = await db.query(
-      `SELECT ${columnasValidas.map(c => `\`${c}\``).join(', ')}, created_at 
-       FROM sensor_data 
-       ORDER BY created_at`
-    );
-
-    if (rows.length < 2) {
-      return res.status(400).json({ error: 'No hay suficientes datos para calcular el AUC' });
-    }
-
-    // Convertir timestamps a segundos
-    const times = rows.map(r => new Date(r.created_at).getTime() / 1000);
-
-    // Función para calcular AUC con regla del trapecio
-    const calcularAUC = (values) => {
-      let auc = 0;
-      for (let i = 1; i < values.length; i++) {
-        const dt = times[i] - times[i - 1];
-        const avgHeight = (values[i] + values[i - 1]) / 2;
-        auc += avgHeight * dt;
-      }
-      return auc;
-    };
-
-    // Calcular AUC de todas las columnas
-    const auc = {};
-    columnasValidas.forEach(col => {
-      const valores = rows.map(r => r[col]);
-      auc[col] = calcularAUC(valores);
-    });
-
-    // Preparar datos por timestamp para graficar
-    const datos = rows.map(r => {
-      const obj = { timestamp: r.created_at };
-      columnasValidas.forEach(col => obj[col] = r[col]);
-      return obj;
-    });
-
-    res.json({ auc, datos });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al calcular el AUC' });
-  }
-});
-
 
 // api para registrar usuario
 app.post('/api/register', async (req, res) => {

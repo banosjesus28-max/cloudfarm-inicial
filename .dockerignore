@@ -1,3 +1,6 @@
 node_modules
 .devcontainer
 cloudfarm.yaml
+cloudfarm-ingress.yaml
+clusterissuer.yaml
+.gitignore

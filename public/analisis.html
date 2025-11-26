@@ -56,74 +56,36 @@
       <p id="stats-content" class="text-muted">Cargando...</p>
     </div>
 
-    <!-- SECCIÓN DE ALERTAS -->
-    <div id="alerts" class="mb-5 p-4 bg-white rounded shadow-sm border">
-      <h4 class="fw-semibold mb-3 text-danger"><i class="fas fa-exclamation-triangle me-2"></i> Alertas</h4>
-      <div class="container-fluid">
-        <b><ul id="alerts-list" class="list-group list-group-flush"></ul></b>
-      </div>
-    </div>
-
     <!-- GRÁFICAS -->
     <div class="row g-4">
 
-      <div class="col-md-6">
+      <div class="col-md-12">
         <div class="chart-container p-3 bg-white rounded shadow-sm border">
           <h6 class="text-center fw-semibold mb-2">Frecuencia Cardíaca (BPM)</h6>
-          <canvas id="chartBpm"></canvas>
+          <canvas id="chartBPm" width="900" height="300"></canvas>
         </div>
       </div>
 
-      <div class="col-md-6">
+      <div class="col-md-12">
         <div class="chart-container p-3 bg-white rounded shadow-sm border">
           <h6 class="text-center fw-semibold mb-2">Oxigenación (SpO2)</h6>
-          <canvas id="chartSpo2"></canvas>
+          <canvas id="chartTeMp" width="900" height="300"></canvas>
         </div>
       </div>
 
-      <div class="col-md-6">
+      <div class="col-md-12">
         <div class="chart-container p-3 bg-white rounded shadow-sm border">
           <h6 class="text-center fw-semibold mb-2">Temperatura</h6>
-          <canvas id="chartTemp"></canvas>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="chart-container p-3 bg-white rounded shadow-sm border">
-          <h6 class="text-center fw-semibold mb-2">Velocidad</h6>
-          <canvas id="chartSpeed"></canvas>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="chart-container p-3 bg-white rounded shadow-sm border">
-          <h6 class="text-center fw-semibold mb-2">Saturación</h6>
-          <canvas id="chartSats"></canvas>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="chart-container p-3 bg-white rounded shadow-sm border">
-          <h6 class="text-center fw-semibold mb-2">Coordenadas</h6>
-          <canvas id="chartCoords"></canvas>
+          <canvas id="chartSpO2" width="900" height="300"></canvas>
         </div>
       </div>
 
     </div>
-
-    <!-- GRÁFICA GENERAL -->
-    <div class="mt-5 p-4 bg-white rounded shadow-sm border">
-      <h5 class="text-center fw-semibold mb-3">Area bajo la curva (trapecio)</h5>
-      <canvas id="sensorChart" width="1000" height="400"></canvas>
-    </div>
-
   </div>
-
-
     <footer>© 2025 Sistema de Monitoreo | Cloudfarm Intelligens</footer>
   </div>
   <script src="/js/slidebar.js"></script>
-  <script src="/js/trapecio.js"></script>
   <script src="/js/tendencias.js"></script>
+  <script src="/js/trapecio.js"></script>
 </body>
 </html>
