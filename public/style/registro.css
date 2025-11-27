@@ -1,5 +1,5 @@
 body {
-    background: linear-gradient(to right, #00c6ff, #0072ff);
+    background: url('https://imgs.search.brave.com/zu1r8ZNPTSCA3flLivyhHPBissL7CNzvVw92k_FKLBc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93YWxs/cGFwZXJzLmNvbS9p/bWFnZXMvaGQvYmxh/Y2stYW5kLXdoaXRl/LWNhdHRsZS1icmVl/ZHMtYXQtZ3Jhc3Mt/ZmllbGQtaXJ6NjBs/eDhwbzZvMXFwdC5q/cGc') center/cover no-repeat;
     height: 100vh;
     display: flex;
     justify-content: center;

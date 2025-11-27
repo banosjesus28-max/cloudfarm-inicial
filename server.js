@@ -40,6 +40,10 @@ app.get("/analisis", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "analisis.html"));
 });
 
+app.get("/historial", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "historial.html"));
+});
+
 // APIS
 
 // api para obtener usuarios
@@ -120,16 +124,7 @@ app.post('/api/login', async (req, res) => {
 app.post("/api/sensor", async (req, res) => {
   const { lat, lon, alt, speed, sats, bpm, spo2, temp } = req.body;
 
-  io.emit("nuevos_datos", {
-    temperatura: temp,
-    pulso: bpm,
-    gps: { lat, lng: lon, alt },
-    speed,
-    sats,
-    spo2
-  });
-
-    try {
+  try {
   const [result] = await db.query(
     `INSERT INTO sensor_data (lat, lon, alt, speed, sats, bpm, spo2, temp, created_at) 
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
@@ -149,11 +144,11 @@ app.post("/api/sensor", async (req, res) => {
   console.log(`Servidor corriendo en http://26.143.35.32:${PORT}`);
 }); */
 
-/* server.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
-}); */
-
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
 });
+
+/* server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
+}); */
 
