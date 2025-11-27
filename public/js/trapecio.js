@@ -172,4 +172,4 @@ async function main() {
 main();
 
 // Actualización automática cada 30 segundos
-setInterval(main, 30000);
+setInterval(main, 1000);
