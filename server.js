@@ -124,31 +124,49 @@ app.post('/api/login', async (req, res) => {
 app.post("/api/sensor", async (req, res) => {
   const { lat, lon, alt, speed, sats, bpm, spo2, temp } = req.body;
 
+  // Obtener hora local de Mérida usando Intl.DateTimeFormat
+  const meridaTime = new Intl.DateTimeFormat('es-MX', {
+    timeZone: 'America/Merida',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(new Date());
+
+  // Convertir formato DD/MM/YYYY HH:MM:SS -> YYYY-MM-DD HH:MM:SS para MySQL
+  const [datePart, timePart] = meridaTime.split(' ');
+  const [day, month, year] = datePart.split('/');
+  const createdAt = `${year}-${month}-${day} ${timePart}`;
+
   try {
-  const [result] = await db.query(
-    `INSERT INTO sensor_data (lat, lon, alt, speed, sats, bpm, spo2, temp, created_at) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-    [lat, lon, alt, speed, sats, bpm, spo2, temp]
-  );
+    const [result] = await db.query(
+      `INSERT INTO sensor_data (lat, lon, alt, speed, sats, bpm, spo2, temp, created_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [lat, lon, alt, speed, sats, bpm, spo2, temp, createdAt]
+    );
 
-  res.json({ status: "ok", insertedId: result.insertId });
+    res.json({ status: "ok", insertedId: result.insertId });
 
-} catch (err) {
-  console.error(err);
-  res.status(500).json({ error: "Error al guardar en la base de datos" });
-}
-
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al guardar en la base de datos" });
+  }
 });
+
+
 
 /* server.listen(PORT,'26.143.35.32',() => {
   console.log(`Servidor corriendo en http://26.143.35.32:${PORT}`);
 }); */
 
-server.listen(PORT, () => {
+/* server.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
-
-/* server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
 }); */
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
+});
 

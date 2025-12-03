@@ -1,175 +1,168 @@
-// Variables globales para los gráficos
-let chartBPm, chartTeMp, chartSpO2;
-
-// Obtener datos desde la API
-async function obtenerDatos() {
-  const resp = await fetch('/api/sensores');
-  const datos = await resp.json();
-  return datos.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-}
-
-// Calcular AUC entre dos puntos
-function calcularAUCentre(datos, field, index1, index2) {
-  let auc = 0;
-  const start = Math.min(index1, index2);
-  const end = Math.max(index1, index2);
-  for (let i = start + 1; i <= end; i++) {
-    const x0 = new Date(datos[i - 1].created_at).getTime() / 1000;
-    const x1 = new Date(datos[i].created_at).getTime() / 1000;
-    const y0 = datos[i - 1][field];
-    const y1 = datos[i][field];
-    auc += ((y0 + y1) / 2) * (x1 - x0);
-  }
-  return auc;
-}
-
-// Crear dataset para el área seleccionada
-function crearDatasetAreaEntre(datos, field, index1, index2) {
-  const start = Math.min(index1, index2);
-  const end = Math.max(index1, index2);
-  return datos.map((d, i) => (i >= start && i <= end ? d[field] : null));
-}
-
-// Función para crear o actualizar un gráfico
-function crearOActualizarGrafico(chartRef, id, datos, field, color, labelY) {
-  const labels = datos.map(d => new Date(d.created_at).toLocaleTimeString());
-  let selectedPoints = [];
-  let aucValue = null;
-
-  const chartData = {
-    labels: labels,
-    datasets: [
-      {
-        label: field.toUpperCase(),
-        data: datos.map(d => d[field]),
-        fill: true,
-        borderColor: color,
-        backgroundColor: color.replace('1)', '0.2)'),
-        tension: 0.4,
-        pointRadius: 3,
-        pointHoverRadius: 6
-      },
-      {
-        label: 'Área seleccionada',
-        data: new Array(datos.length).fill(null),
-        fill: true,
-        backgroundColor: 'rgba(0,255,0,0.3)',
-        borderColor: 'rgba(0,0,0,0)',
-        tension: 0.4,
-        pointRadius: 0
-      },
-      {
-        label: 'Puntos seleccionados',
-        data: new Array(datos.length).fill(null),
-        type: 'scatter',
-        pointBackgroundColor: 'red',
-        pointBorderColor: 'darkred',
-        pointRadius: 0,
-        pointHoverRadius: 8,
-        showLine: false
-      }
-    ]
-  };
-
-  // Plugin para mostrar AUC
-  const aucPlugin = {
-    id: 'aucPlugin_' + id,
-    afterDraw(chart) {
-      if (selectedPoints.length === 2 && aucValue !== null) {
-        const ctx = chart.ctx;
-        ctx.save();
-        ctx.font = 'bold 16px Arial';
-        ctx.fillStyle = 'green';
-        ctx.textAlign = 'center';
-        const xPix =
-          (chart.scales.x.getPixelForValue(selectedPoints[0]) +
-            chart.scales.x.getPixelForValue(selectedPoints[1])) /
-          2;
-        const yPix = chart.scales.y.getPixelForValue(
-          Math.max(...datos.map(d => d[field])) / 2
-        );
-        ctx.fillText(`Area = ${aucValue.toFixed(2)}`, xPix, yPix);
-        ctx.restore();
-      }
-    }
-  };
-
-  const config = {
-    type: 'line',
-    data: chartData,
-    options: {
-      responsive: true,
-      interaction: { mode: 'nearest', intersect: true },
-      scales: {
-        x: { display: true, title: { display: true, text: 'Tiempo' } },
-        y: { display: true, title: { display: true, text: labelY } }
-      },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const index = context.dataIndex;
-              const valor = context.dataset.data[index];
-              return `${context.dataset.label}: ${valor}`;
-            }
-          }
-        }
-      },
-      onClick: (evt, chartElements, chart) => {
-        if (!chartElements.length) return;
-        const index = chartElements[0].index;
-
-        // Reiniciar si ya había dos puntos
-        if (selectedPoints.length === 2) {
-          selectedPoints = [];
-          aucValue = null;
-          chart.data.datasets[1].data = new Array(datos.length).fill(null);
-          chart.data.datasets[2].data = new Array(datos.length).fill(null);
-          chart.update('active');
-        }
-
-        selectedPoints.push(index);
-
-        if (selectedPoints.length === 2) {
-          aucValue = calcularAUCentre(datos, field, selectedPoints[0], selectedPoints[1]);
-          chart.data.datasets[1].data = crearDatasetAreaEntre(datos, field, selectedPoints[0], selectedPoints[1]);
-
-          const puntos = new Array(datos.length).fill(null);
-          puntos[selectedPoints[0]] = datos[selectedPoints[0]][field];
-          puntos[selectedPoints[1]] = datos[selectedPoints[1]][field];
-          chart.data.datasets[2].data = puntos;
-
-          chart.update('active');
-        }
-      }
-    },
-    plugins: [aucPlugin]
-  };
-
-  const ctx = document.getElementById(id).getContext('2d');
-
-  if (!chartRef.value) {
-    chartRef.value = new Chart(ctx, config);
-  } else {
-    // Actualizar datos manteniendo interacciones
-    chartRef.value.data.labels = labels;
-    chartRef.value.data.datasets[0].data = datos.map(d => d[field]);
-    chartRef.value.update();
+// ---------------------------
+// FETCH DE DATOS
+// ---------------------------
+async function fetchSensorData() {
+  try {
+    const res = await fetch('/api/sensores');
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error('Error al obtener sensores:', err);
+    return [
+      { bpm: 80, temp: 36.5, spo2: 97, created_at: new Date().toISOString() },
+      { bpm: 95, temp: 37.2, spo2: 96, created_at: new Date(Date.now() + 60000).toISOString() },
+      { bpm: 120, temp: 38.0, spo2: 92, created_at: new Date(Date.now() + 120000).toISOString() }
+    ];
   }
 }
 
-// Función principal
-async function main() {
-  const datos = await obtenerDatos();
-  if (!datos.length) return;
-
-  crearOActualizarGrafico({ value: chartBPm }, 'chartBPm', datos, 'bpm', 'rgba(0,0,255,1)', 'Pulso (BPM)');
-  crearOActualizarGrafico({ value: chartTeMp }, 'chartTeMp', datos, 'temp', 'rgba(255,165,0,1)', 'Temperatura (°C)');
-  crearOActualizarGrafico({ value: chartSpO2 }, 'chartSpO2', datos, 'spo2', 'rgba(0,128,0,1)', 'Oxigenación (SpO₂)');
+// ---------------------------
+// FUNCIONES GENERALES
+// ---------------------------
+function calcularArea(values, timestamps) {
+  const combined = values.map((v,i)=>({ val:v, ts: new Date(timestamps[i]).getTime()/1000 }));
+  combined.sort((a,b)=>a.ts-b.ts);
+  let area=0;
+  for(let i=0;i<combined.length-1;i++){
+    const dt = combined[i+1].ts - combined[i].ts;
+    area += ((combined[i].val + combined[i+1].val)/2) * dt;
+  }
+  return area;
 }
 
-// Primera ejecución
-main();
+function promedioPonderado(values, timestamps) {
+  const combined = values.map((v,i)=>({ val:v, ts: new Date(timestamps[i]).getTime()/1000 }));
+  combined.sort((a,b)=>a.ts-b.ts);
+  let total=0, tiempoTotal=0;
+  for(let i=0;i<combined.length-1;i++){
+    const dt = combined[i+1].ts - combined[i].ts;
+    total += ((combined[i].val + combined[i+1].val)/2) * dt;
+    tiempoTotal+=dt;
+  }
+  return tiempoTotal>0? total/tiempoTotal:0;
+}
 
-// Actualización automática cada 30 segundos
-setInterval(main, 1000);
+// ---------------------------
+// RENDER PRINCIPAL
+// ---------------------------
+async function renderChart() {
+  const data = await fetchSensorData();
+  if(!data || data.length===0){
+    document.getElementById('info').innerText='No hay datos para graficar';
+    document.getElementById('interpretacion').innerText='';
+    return;
+  }
+
+  const labels = data.map(d=>new Date(d.created_at).toLocaleTimeString());
+  const bpmValues = data.map(d=>d.bpm);
+  const tempValues = data.map(d=>d.temp);
+  const spo2Values = data.map(d=>d.spo2);
+  const timestamps = data.map(d=>d.created_at);
+
+  // ---------------------------
+  // BPM
+  // ---------------------------
+  function getBpmColor(bpm){ if(bpm<100) return 'rgba(0,200,0,0.4)'; if(bpm<140) return 'rgba(255,200,0,0.4)'; return 'rgba(255,0,0,0.4)'; }
+  const areaBpm = calcularArea(bpmValues, timestamps);
+  const alertaBpm = promedioPonderado(bpmValues,timestamps)<100?{texto:'Normal ✅',color:'green'}:promedioPonderado(bpmValues,timestamps)<140?{texto:'Estrés ⚠️',color:'orange'}:{texto:'Crítico ❌',color:'red'};
+  const promedioBpm = bpmValues.reduce((a,b)=>a+b,0)/bpmValues.length;
+  const minBpm = Math.min(...bpmValues);
+  const maxBpm = Math.max(...bpmValues);
+
+  // ---------------------------
+  // TEMPERATURA
+  // ---------------------------
+  function getTempColor(temp){ if(temp<37) return 'rgba(0,200,0,0.4)'; if(temp<38.5) return 'rgba(255,200,0,0.4)'; return 'rgba(255,0,0,0.4)'; }
+  const areaTemp = calcularArea(tempValues, timestamps);
+  const promedioTemp = tempValues.reduce((a,b)=>a+b,0)/tempValues.length;
+  const minTemp = Math.min(...tempValues);
+  const maxTemp = Math.max(...tempValues);
+  const alertaTemp = promedioTemp<37?{texto:'Normal ✅',color:'green'}:promedioTemp<38.5?{texto:'Leve ⚠️',color:'orange'}:{texto:'Fiebre ❌',color:'red'};
+
+  // ---------------------------
+  // SpO2
+  // ---------------------------
+  function getSpO2Color(spo2){ if(spo2>=95) return 'rgba(0,200,0,0.4)'; if(spo2>=90) return 'rgba(255,200,0,0.4)'; return 'rgba(255,0,0,0.4)'; }
+  const areaSpO2 = calcularArea(spo2Values, timestamps);
+  const promedioSpO2 = spo2Values.reduce((a,b)=>a+b,0)/spo2Values.length;
+  const minSpO2 = Math.min(...spo2Values);
+  const maxSpO2 = Math.max(...spo2Values);
+  const alertaSpO2 = promedioSpO2>=95?{texto:'Normal ✅',color:'green'}:promedioSpO2>=90?{texto:'Leve ⚠️',color:'orange'}:{texto:'Crítico ❌',color:'red'};
+
+  // ---------------------------
+  // ACTUALIZAR INFO
+  // ---------------------------
+document.getElementById('info').innerHTML = `
+  <div class="card shadow-sm">
+    <div class="card-body">
+
+      <h5 class="card-title mb-3">Resumen de Datos</h5>
+
+      <div class="mb-3">
+        <h6 class="text-primary">Frecuencia Cardíaca (BPM)</h6>
+        <ul class="list-unstyled ms-2">
+          <li><strong>Área:</strong> ${areaBpm.toFixed(1)}</li>
+          <li><strong>Estado:</strong> <span style="color:${alertaBpm.color}">${alertaBpm.texto}</span></li>
+          <li><strong>Promedio:</strong> ${promedioBpm.toFixed(1)}</li>
+          <li><strong>Mínimo:</strong> ${minBpm}</li>
+          <li><strong>Máximo:</strong> ${maxBpm}</li>
+        </ul>
+      </div>
+
+      <hr>
+
+      <div class="mb-3">
+        <h6 class="text-primary">Temperatura</h6>
+        <ul class="list-unstyled ms-2">
+          <li><strong>Área:</strong> ${areaTemp.toFixed(1)}</li>
+          <li><strong>Promedio:</strong> ${promedioTemp.toFixed(1)}°C 
+            <span style="color:${alertaTemp.color}">(${alertaTemp.texto})</span>
+          </li>
+          <li><strong>Mínimo:</strong> ${minTemp.toFixed(1)}°C</li>
+          <li><strong>Máximo:</strong> ${maxTemp.toFixed(1)}°C</li>
+        </ul>
+      </div>
+
+      <hr>
+
+      <div>
+        <h6 class="text-primary">Oxigenación (SpO₂)</h6>
+        <ul class="list-unstyled ms-2">
+          <li><strong>Área:</strong> ${areaSpO2.toFixed(1)}</li>
+          <li><strong>Promedio:</strong> ${promedioSpO2.toFixed(1)}% 
+            <span style="color:${alertaSpO2.color}">(${alertaSpO2.texto})</span>
+          </li>
+          <li><strong>Mínimo:</strong> ${minSpO2}%</li>
+          <li><strong>Máximo:</strong> ${maxSpO2}%</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+`;
+
+  // ---------------------------
+  // GRAFICAS
+  // ---------------------------
+  const chartOptions = (values, colors, title, min, max)=>{
+    return {
+      title: { text: title, left: 'center' },
+      tooltip: { trigger: 'axis' },
+      xAxis: { type:'category', data: labels, axisLabel:{ interval: Math.floor(labels.length/10), rotate:45 } },
+      yAxis: { type:'value', min:min, max:max },
+      dataZoom: [ { type:'slider', start:0, end:50 }, { type:'inside', start:0, end:50 } ],
+      series: [ { type:'line', data:values, smooth:true, lineStyle:{width:2}, areaStyle:{ color:{ type:'linear', x:0,y:0,x2:0,y2:1, colorStops: colors.map((c,i)=>({offset:i/(values.length-1), color:c})) } } } ]
+    };
+  };
+
+  echarts.init(document.getElementById('chartBpm')).setOption(chartOptions(bpmValues, bpmValues.map(getBpmColor),'BPM',0, Math.max(...bpmValues)+10));
+  echarts.init(document.getElementById('chartTemp')).setOption(chartOptions(tempValues, tempValues.map(getTempColor),'Temperatura (°C)',35,42));
+  echarts.init(document.getElementById('chartSpO2')).setOption(chartOptions(spo2Values, spo2Values.map(getSpO2Color),'SpO2 (%)',80,100));
+}
+
+// ---------------------------
+// INICIALIZAR Y REFRESCAR
+// ---------------------------
+renderChart();
+setInterval(renderChart,5000);
